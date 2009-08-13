@@ -19,8 +19,9 @@
 
 import gtk
 import os.path
-
 import gtksourceview2
+
+from basicObjects import *
 
 
 class NewCode:
@@ -83,21 +84,6 @@ class NewCode:
         self.on_close()
 
 
-    def should_not_add(self, obj):
-
-        return \
-            type(obj) == gtk.HBox or \
-            type(obj) == gtk.VBox or \
-            type(obj) == gtk.Table or \
-            type(obj) == gtk.HPaned or \
-            type(obj) == gtk.VPaned or \
-            type(obj) == gtk.Expander or \
-            type(obj) == gtk.Alignment or \
-            type(obj) == gtk.Fixed or \
-            type(obj) == gtk.HSeparator or \
-            type(obj) == gtk.VSeparator
-
-
     def gen_code(self, doc, glade_file ):
 
         b = gtk.Builder()
@@ -108,7 +94,7 @@ class NewCode:
         main_window = ""
 
         for obj in objs:
-            if self.should_not_add( obj ):
+            if is_utility_object( obj ):
                 continue
 
             try:

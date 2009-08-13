@@ -8,7 +8,7 @@ import os
 import os.path
 
 from msgbox import alert
-from images import Images
+from images import Images, ObjectImages
 from ideForm import Form
 from ideFormTitleBar import draw_titlebar
 from ideObjectInspector import ObjectInspector
@@ -40,12 +40,15 @@ class IDE:
         self.btnOpenGlade = builder.get_object( "btnOpenGlade" )
         self.btnImplementSignal = builder.get_object( "btnImplementSignal" )
         self.btnImplementObject = builder.get_object( "btnImplementObject" )
+        self.comboObjects = builder.get_object( "comboObjects" )
+        self.storeObjects = builder.get_object( "storeObjects" )
 
         self.textInfo.modify_base( gtk.STATE_NORMAL, gtk.gdk.color_parse("#ffffbd") )
         self.textInfo.modify_font( pango.FontDescription("8") )
         self.formView.modify_bg( gtk.STATE_NORMAL, gtk.gdk.color_parse("white") )
 
         self.images = Images()
+        self.objectImages = ObjectImages()
         self.objectInspector = ObjectInspector( self )
         self.form = Form( self )
         self.analyser = None

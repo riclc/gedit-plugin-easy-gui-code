@@ -32,8 +32,20 @@
       <column type="gchararray"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="storeObjects">
+    <columns>
+      <!-- column-name Icone -->
+      <column type="GdkPixbuf"/>
+      <!-- column-name Markup -->
+      <column type="gchararray"/>
+      <!-- column-name Objeto -->
+      <column type="gchararray"/>
+      <!-- column-name Objeto1 -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkWindow" id="window">
-    <property name="title" translatable="yes">gtk.Builder IDE</property>
+    <property name="title" translatable="yes">Easy GUI Code</property>
     <property name="window_position">center</property>
     <property name="default_width">750</property>
     <property name="default_height">550</property>
@@ -52,14 +64,24 @@
                 <property name="visible">True</property>
                 <property name="spacing">8</property>
                 <child>
-                  <object class="GtkImage" id="imgObject">
+                  <object class="GtkViewport" id="viewImgObject">
+                    <property name="width_request">38</property>
                     <property name="visible">True</property>
-                    <property name="xpad">2</property>
-                    <property name="ypad">2</property>
-                    <property name="stock">gtk-info</property>
+                    <property name="resize_mode">queue</property>
+                    <property name="shadow_type">out</property>
+                    <child>
+                      <object class="GtkImage" id="imgObject">
+                        <property name="visible">True</property>
+                        <property name="xpad">2</property>
+                        <property name="ypad">2</property>
+                        <property name="stock">gtk-info</property>
+                      </object>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="padding">5</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
@@ -78,8 +100,25 @@ gtk.Window</property>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="padding">7</property>
+                <property name="padding">5</property>
                 <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkAlignment" id="alignment1">
+                <property name="visible">True</property>
+                <property name="bottom_padding">6</property>
+                <child>
+                  <object class="GtkComboBox" id="comboObjects">
+                    <property name="visible">True</property>
+                    <property name="model">storeObjects</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
               </packing>
             </child>
             <child>
@@ -278,7 +317,7 @@ gtk.Window</property>
                 </child>
               </object>
               <packing>
-                <property name="position">1</property>
+                <property name="position">2</property>
               </packing>
             </child>
             <child>
@@ -306,7 +345,7 @@ gtk.Window</property>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="position">2</property>
+                <property name="position">3</property>
               </packing>
             </child>
           </object>

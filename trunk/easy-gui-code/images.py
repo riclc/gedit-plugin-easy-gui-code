@@ -18,6 +18,7 @@
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import gtk
+import os
 import os.path
 
 
@@ -50,3 +51,29 @@ class Images:
 
     def by_name(self, image_name):
         return self.imgs[ image_name ]
+
+
+
+
+class ObjectImages:
+
+    def __init__(self):
+
+        self.imgs = {}
+
+        obj_imgs = os.listdir( os.path.join( "imgs", "objects" ) )
+        for obj_img in obj_imgs:
+            if obj_img[-3:].lower() != "png":
+                continue
+
+            obj_name = obj_img[:-4]
+            filename = os.path.join( "imgs", "objects", obj_img )
+
+            self.imgs[ obj_name ] = gtk.gdk.pixbuf_new_from_file( filename )
+
+
+    def has_image(self, object_name):
+        return object_name in self.imgs
+
+    def by_name(self, object_name):
+        return self.imgs[ object_name ]

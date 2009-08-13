@@ -20,6 +20,7 @@
 import gtk
 import cairo
 
+from basicObjects import *
 
 
 
@@ -68,14 +69,22 @@ class Form:
 
         self.formControls = FormControls()
         self.formControls.objs = builder.get_objects()
+        self.ide.storeObjects.clear()
 
         for obj in self.formControls.objs:
+
+            tobj = "gtk." + obj.__class__.__name__
+
             try:
                 obj_name = obj.get_name()
             except:
-                obj_name = obj.__class__.__name__ + "_" + str(hash(obj))
+                obj_name = "untitled_" + tobj + "_" + str(hash(obj))
 
             setattr( self.formControls, obj_name, obj )
+
+            if is_basic_object( obj ):
+                sobj = "<b>%s</b> (%s)" % (obj_name, tobj)
+                self.ide.storeObjects.append( [None, sobj, obj, obj_name] )
 
             if isinstance( obj, gtk.Window ):
                 self.main_window = obj

@@ -45,11 +45,15 @@ class ObjectInspector:
         return col
 
 
-    def column_new_text(self, src, use_markup = False):
+    def column_new_text(self, src, use_markup = False, use_col = None):
         textRenderer = gtk.CellRendererText()
 
-        col = gtk.TreeViewColumn()
-        col.set_spacing( 3 )
+        if use_col:
+            col = use_col
+        else:
+            col = gtk.TreeViewColumn()
+            col.set_spacing( 3 )
+
         col.pack_start( textRenderer, expand=False )
 
         if use_markup:
@@ -70,17 +74,32 @@ class ObjectInspector:
         self.ide.listSignals.append_column( self.column_new_img() )
         self.ide.listSignals.append_column( self.column_new_text(5, True) )
 
+        self.column_new_text(1, use_markup = True, \
+            use_col = self.ide.comboObjects)
+
 
 
     def select_obj(self, obj):
 
         sobj = obj.get_name()
+        tobj = "gtk." + type(obj).__name__
 
         self.selected_obj = obj
 
         self.ide.labObject.set_markup( \
             "<b><big>" + sobj + "</big></b>\n" + \
-            "gtk." + type(obj).__name__ )
+            tobj )
+
+
+        if self.ide.objectImages.has_image( tobj ):
+            img_name = tobj
+        else:
+            img_name = "gtk.Widget"
+
+        self.ide.imgObject.set_from_pixbuf( \
+                self.ide.objectImages.by_name( img_name ) )
+
+
 
         self.read_props( obj )
         self.read_signals( obj )

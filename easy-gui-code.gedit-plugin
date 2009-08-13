@@ -1,0 +1,8 @@
+[Gedit Plugin]
+Loader=python
+Module=easy-gui-code
+IAge=2
+Name=Easy GUI Code
+Description=Automatic gui-code generation for PyGTK programs
+Authors=Ricardo Lenz <riclc@hotmail.com>
+Copyright=Copyright (C) 2009 Ricardo Lenz

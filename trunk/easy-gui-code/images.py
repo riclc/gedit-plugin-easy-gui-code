@@ -21,6 +21,9 @@ import gtk
 import os
 import os.path
 
+#my_own_dir = sys.path[0]
+my_own_dir = os.path.dirname(__file__)
+
 
 class Images:
 
@@ -44,8 +47,7 @@ class Images:
         self.imgs = {}
 
         for f in self.img_names:
-            filename = os.path.join( os.path.dirname(__file__), \
-                "imgs", "etc", f + ".png" )
+            filename = os.path.join( my_own_dir, "imgs", "etc", f + ".png" )
             self.imgs[f] = gtk.gdk.pixbuf_new_from_file( filename )
 
 
@@ -61,13 +63,13 @@ class ObjectImages:
 
         self.imgs = {}
 
-        obj_imgs = os.listdir( os.path.join( "imgs", "objects" ) )
+        obj_imgs = os.listdir( os.path.join( my_own_dir, "imgs", "objects" ) )
         for obj_img in obj_imgs:
             if obj_img[-3:].lower() != "png":
                 continue
 
             obj_name = obj_img[:-4]
-            filename = os.path.join( "imgs", "objects", obj_img )
+            filename = os.path.join( my_own_dir, "imgs", "objects", obj_img )
 
             self.imgs[ obj_name ] = gtk.gdk.pixbuf_new_from_file( filename )
 

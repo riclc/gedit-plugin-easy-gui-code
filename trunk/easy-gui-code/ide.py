@@ -18,9 +18,9 @@ class IDE:
 
     def __init__(self):
 
+        mydir = os.path.dirname(__file__) 
         builder = gtk.Builder()
-        builder.add_from_file( \
-            os.path.join( os.path.dirname(__file__), "ide.glade" ) )
+        builder.add_from_file( os.path.join( mydir, "ide.glade" ) )
 
         self.window = builder.get_object( "window" )
         self.textInfo = builder.get_object( "textInfo" )
@@ -67,6 +67,7 @@ class IDE:
         self.listProps.connect( "cursor-changed", self.objectInspector.on_select_prop )
         self.listSignals.connect( "cursor-changed", self.objectInspector.on_select_signal )
         self.listProps.connect( "row-activated", self.objectInspector.on_exec_prop )
+        self.listSignals.connect( "row-activated", self.on_implement_signal )
 
 
 
@@ -124,7 +125,7 @@ class IDE:
 
 
 
-    def on_implement_signal(self, widget):
+    def on_implement_signal(self, *args):
 
         path, col = self.listSignals.get_cursor()
         it = self.storeSignals.get_iter( path )
@@ -133,6 +134,12 @@ class IDE:
         event_name = self.storeSignals.get_value( it, 1 )
         callback_name = self.objectInspector.signal_callback( it, True )
         callback_decl = self.objectInspector.signal_callback_full( it, indent = "    " )
+
+        sig_implemented, sig_line = self.analyser.check_obj_signal( \
+            obj_name, event_name )
+        if sig_implemented:
+            print "Signal already implemented: %s.%s" % (obj_name, event_name)
+            return
 
         self.analyser.code_add_for_event( obj_name, event_name, \
             callback_name, callback_decl )

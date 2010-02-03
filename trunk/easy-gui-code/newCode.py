@@ -28,9 +28,9 @@ class NewCode:
 
     def __init__(self):
 
+        mydir = os.path.dirname(__file__)
         builder = gtk.Builder()
-        builder.add_from_file( \
-            os.path.join( os.path.dirname(__file__), "newCode.glade" ) )
+        builder.add_from_file( os.path.join( mydir, "newCode.glade" ) )
 
         self.window = builder.get_object( "window" )
         self.fileGlade = builder.get_object( "fileGlade" )
@@ -114,27 +114,26 @@ class NewCode:
 
         code_class = os.path.splitext( os.path.basename( glade_file ) )[0].capitalize()
 
-        glade_file2 = os.path.basename( glade_file )
+        glade_file_basename = os.path.basename( glade_file )
 
 
         code1 = """#!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
 import gtk
+import os.path
 import pango
 
 class %s:
 
     def __init__(self):
 
+        mydir = os.path.dirname(__file__)
         builder = gtk.Builder()
-
-        # %s
-        builder.add_from_file( \"%s\" )
+        builder.add_from_file( os.path.join( mydir, \"%s\" ) )
 
 %s
-"""     % (code_class, glade_file, glade_file2, code_objs)
-
+"""     % (code_class, glade_file_basename, code_objs)
 
 
         code2 = """
@@ -145,20 +144,20 @@ class %s:
 
 
         code3 = """
-    def run(self, parentWindow = None):
+    def run(self, parent_window = None):
 
         self.%s.show()
 
-        self.parentWindow = parentWindow
-        if self.parentWindow:
-            self.%s.set_transient_for( parentWindow )
+        self.parent_window = parent_window
+        if self.parent_window:
+            self.%s.set_transient_for( parent_window )
         else:
             gtk.main()
 
 
     def on_close(self, *args):
 
-        if self.parentWindow:
+        if self.parent_window:
             self.%s.hide()
             return True
         else:

@@ -99,12 +99,12 @@ class GtkBuilderSelectorPlugin(gedit.Plugin):
             NewCode().run( parentWindow = self.window, doc = doc )
             return
 
-        if not self.analyser.builder_file:
-            NewCode().run( parentWindow = self.window, doc = doc, _dir = os.getcwd() )
-            return
-
         doc_file = doc_file.replace( "file://", "" )
         doc_dir = os.path.dirname( doc_file )
+
+        if not self.analyser.builder_file:
+            NewCode().run( parentWindow = self.window, doc = doc, _dir = doc_dir )
+            return
 
         glade_file = os.path.join( doc_dir, self.analyser.builder_file )
 

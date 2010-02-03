@@ -24,6 +24,8 @@ def is_utility_object(obj):
     return \
         type(obj) == gtk.HBox or \
         type(obj) == gtk.VBox or \
+        type(obj) == gtk.HButtonBox or \
+        type(obj) == gtk.VButtonBox or \
         type(obj) == gtk.Table or \
         type(obj) == gtk.HPaned or \
         type(obj) == gtk.VPaned or \

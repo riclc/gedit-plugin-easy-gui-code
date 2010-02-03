@@ -311,7 +311,7 @@ class ObjectInspector:
         prop_type = self.ide.storeProps.get_value( it, 2 )
         prop_default = self.ide.storeProps.get_value( it, 3 )
 
-        code = self.selected_obj.get_name() + ".set_property( " + \
+        code = "self." + self.selected_obj.get_name() + ".set_property( " + \
             '"' + prop + '"' + ", " + prop_default + " )"
 
         self.ide.analyser.code_add_to_current_line( code )

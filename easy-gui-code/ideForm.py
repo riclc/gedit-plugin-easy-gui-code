@@ -97,7 +97,10 @@ class Form:
 
         # define a aparencia do form
         #
-        self.ide.formTitle.set_text( self.main_window.get_title() )
+        titulo = self.main_window.get_title()
+        if titulo == None: titulo = "Form1"
+        self.ide.formTitle.set_text( titulo )
+        
         w, h = self.main_window.get_size()
         h += self.ide.formTitleBar.get_size_request()[1]
         self.ide.formFrame.set_size_request( w, h )

@@ -20,6 +20,7 @@
 
 import gedit
 import gtk
+import gio
 import os
 import os.path
 
@@ -99,7 +100,7 @@ class GtkBuilderSelectorPlugin(gedit.Plugin):
             NewCode().run( parentWindow = self.window, doc = doc )
             return
 
-        doc_file = doc_file.replace( "file://", "" )
+        doc_file = gio.File( doc_file ).get_path()
         doc_dir = os.path.dirname( doc_file )
 
         if not self.analyser.builder_file:
@@ -107,7 +108,7 @@ class GtkBuilderSelectorPlugin(gedit.Plugin):
             return
 
         glade_file = os.path.join( doc_dir, self.analyser.builder_file )
-
+        
         if os.path.exists( glade_file ):
 
             IDE().run( \

@@ -36,11 +36,19 @@
     <columns>
       <!-- column-name Icone -->
       <column type="GdkPixbuf"/>
-      <!-- column-name Markup -->
+      <!-- column-name Descrição -->
       <column type="gchararray"/>
       <!-- column-name Objeto -->
+      <column type="GObject"/>
+      <!-- column-name Nome -->
       <column type="gchararray"/>
-      <!-- column-name Objeto1 -->
+    </columns>
+  </object>
+  <object class="GtkListStore" id="storeCallbacks">
+    <columns>
+      <!-- column-name Versão em markup -->
+      <column type="gchararray"/>
+      <!-- column-name Versão sem markup -->
       <column type="gchararray"/>
     </columns>
   </object>
@@ -105,21 +113,60 @@ gtk.Window</property>
               </packing>
             </child>
             <child>
-              <object class="GtkAlignment" id="alignment1">
+              <object class="GtkHSeparator" id="hseparator1">
                 <property name="visible">True</property>
-                <property name="bottom_padding">6</property>
-                <child>
-                  <object class="GtkComboBox" id="comboObjects">
-                    <property name="visible">True</property>
-                    <property name="model">storeObjects</property>
-                  </object>
-                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label7">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="xpad">4</property>
+                <property name="ypad">2</property>
+                <property name="label" translatable="yes">Objects:</property>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
-                <property name="position">1</property>
+                <property name="position">2</property>
               </packing>
+            </child>
+            <child>
+              <object class="GtkAlignment" id="alignment1">
+                <property name="visible">True</property>
+                <property name="top_padding">2</property>
+                <property name="bottom_padding">4</property>
+                <property name="left_padding">4</property>
+                <property name="right_padding">4</property>
+                <child>
+                  <object class="GtkScrolledWindow" id="scrolledwindow5">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="hscrollbar_policy">automatic</property>
+                    <property name="vscrollbar_policy">automatic</property>
+                    <property name="shadow_type">etched-out</property>
+                    <child>
+                      <object class="GtkTreeView" id="listObjects">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="model">storeObjects</property>
+                        <property name="headers_visible">False</property>
+                        <property name="search_column">3</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child>
+              <placeholder/>
             </child>
             <child>
               <object class="GtkNotebook" id="notebook1">
@@ -186,7 +233,7 @@ gtk.Window</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="border_width">3</property>
+                        <property name="border_width">2</property>
                         <child>
                           <object class="GtkHBox" id="hbox3">
                             <property name="visible">True</property>
@@ -218,6 +265,59 @@ gtk.Window</property>
                       <packing>
                         <property name="expand">False</property>
                         <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkCheckButton" id="checkConnectAfter">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">False</property>
+                        <property name="draw_indicator">True</property>
+                        <child>
+                          <object class="GtkLabel" id="label8">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">&lt;small&gt;Process callback &lt;b&gt;after&lt;/b&gt; others&lt;/small&gt;</property>
+                            <property name="use_markup">True</property>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="padding">2</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkHBox" id="hbox5">
+                        <property name="visible">True</property>
+                        <property name="border_width">2</property>
+                        <property name="spacing">1</property>
+                        <child>
+                          <object class="GtkLabel" id="label9">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">&lt;small&gt;Callback:&lt;/small&gt;</property>
+                            <property name="use_markup">True</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkComboBox" id="comboCallbacks">
+                            <property name="visible">True</property>
+                            <property name="model">storeCallbacks</property>
+                          </object>
+                          <packing>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="padding">1</property>
+                        <property name="position">3</property>
                       </packing>
                     </child>
                   </object>
@@ -317,7 +417,7 @@ gtk.Window</property>
                 </child>
               </object>
               <packing>
-                <property name="position">2</property>
+                <property name="position">5</property>
               </packing>
             </child>
             <child>
@@ -345,7 +445,7 @@ gtk.Window</property>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="position">3</property>
+                <property name="position">6</property>
               </packing>
             </child>
           </object>

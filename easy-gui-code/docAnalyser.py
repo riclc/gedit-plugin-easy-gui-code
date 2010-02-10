@@ -202,6 +202,11 @@ class DocAnalyser:
         s_connect = ".connect("
         pos = lin.find( s_connect )
 
+        if pos == -1:
+            # tenta com connect_after
+            s_connect = ".connect_after("
+            pos = lin.find( s_connect )
+            
         if pos != -1:
             s_self = "self."
             pos_self = lin.find( s_self )
@@ -304,7 +309,7 @@ class DocAnalyser:
 
 
 
-    def code_add_for_event(self, sobj, sevent, scallback, scallback_decl):
+    def code_add_for_event(self, sobj, sevent, scallback, scallback_decl, callback_after):
 
         # for each code_add, we must re-inspect the code, because the
         # self.last_line_for_xxxx's must be updated.
@@ -312,13 +317,20 @@ class DocAnalyser:
 
         self.code_add_for_get_object( sobj )
 
+        if callback_after:
+            connect_cmd = "connect_after"
+        else:
+            connect_cmd = "connect"
+
         self.code_add( \
-            "        self.%s.connect( \"%s\", %s )\n" % \
-            (sobj, sevent, "self." + scallback), \
+            "        self.%s.%s( \"%s\", %s )\n" % \
+            (sobj, connect_cmd, sevent, "self." + scallback), \
             self.last_line_for_connect+1 )
 
-        self.code_add( "\n\n" + scallback_decl + "\n\n\n", \
-            self.last_line_for_proc-1 )
+
+        if scallback_decl != None:
+            self.code_add( "\n" + scallback_decl + "\n\n", \
+                self.last_line_for_proc-1 )
 
 
 

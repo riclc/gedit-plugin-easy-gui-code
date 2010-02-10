@@ -40,8 +40,11 @@ class IDE:
         self.btnOpenGlade = builder.get_object( "btnOpenGlade" )
         self.btnImplementSignal = builder.get_object( "btnImplementSignal" )
         self.btnImplementObject = builder.get_object( "btnImplementObject" )
-        self.comboObjects = builder.get_object( "comboObjects" )
+        self.listObjects = builder.get_object( "listObjects" )
         self.storeObjects = builder.get_object( "storeObjects" )
+        self.checkConnectAfter = builder.get_object("checkConnectAfter")
+        self.comboCallbacks = builder.get_object( "comboCallbacks" )
+        self.storeCallbacks = builder.get_object( "storeCallbacks" )
 
         self.textInfo.modify_base( gtk.STATE_NORMAL, gtk.gdk.color_parse("#ffffbd") )
         self.textInfo.modify_font( pango.FontDescription("8") )
@@ -57,17 +60,18 @@ class IDE:
         self.formTitleBar.set_app_paintable( True )
         self.titleBarClose = self.images.by_name( "close" )
 
-        self.formTitleBar.connect( "expose-event", self.on_draw_titlebar )
-        self.formBox.connect_after( "expose-event", self.on_draw_border )
-        self.window.connect( "delete-event", self.on_close )
-        self.btnOpenGlade.connect( "clicked", self.on_open_glade )
-        self.btnImplementSignal.connect( "clicked", self.on_implement_signal )
-        self.btnImplementObject.connect( "clicked", self.on_implement_object )
+        self.formTitleBar.connect( "expose-event",      self.on_draw_titlebar )
+        self.formBox.connect_after( "expose-event",     self.on_draw_border )
+        self.window.connect( "delete-event",            self.on_close )
+        self.btnOpenGlade.connect( "clicked",           self.on_open_glade )
+        self.btnImplementSignal.connect( "clicked",     self.on_implement_signal )
+        self.btnImplementObject.connect( "clicked",     self.on_implement_object )
+        self.listObjects.connect( "cursor-changed",     self.on_list_objects_select )
 
-        self.listProps.connect( "cursor-changed", self.objectInspector.on_select_prop )
-        self.listSignals.connect( "cursor-changed", self.objectInspector.on_select_signal )
-        self.listProps.connect( "row-activated", self.objectInspector.on_exec_prop )
-        self.listSignals.connect( "row-activated", self.on_implement_signal )
+        self.listProps.connect( "cursor-changed",       self.objectInspector.on_select_prop )
+        self.listSignals.connect( "cursor-changed",     self.objectInspector.on_select_signal )
+        self.listProps.connect( "row-activated",        self.objectInspector.on_exec_prop )
+        self.listSignals.connect( "row-activated",      self.on_implement_signal )
 
 
 
@@ -82,6 +86,8 @@ class IDE:
 
         if self.glade_file:
             self.form.load_from_file( glade_file )
+        
+        self.objectInspector.read_callbacks()
 
         self.parentWindow = parentWindow
         if self.parentWindow:
@@ -124,16 +130,47 @@ class IDE:
         return True
 
 
+    def on_list_objects_select(self, *args):
+        
+        path, col = self.listObjects.get_cursor()
+        if path == None:
+            return
+
+        it = self.storeObjects.get_iter( path )
+        obj = self.storeObjects.get_value( it, 2 )
+        
+        self.form.ctrl_selected = obj 
+        self.formContainer.queue_draw()        
+        self.objectInspector.select_obj( obj )
+
+
+
 
     def on_implement_signal(self, *args):
 
         path, col = self.listSignals.get_cursor()
+        if path == None:
+            return
+        
         it = self.storeSignals.get_iter( path )
 
         obj_name = self.objectInspector.selected_obj.get_name()
         event_name = self.storeSignals.get_value( it, 1 )
-        callback_name = self.objectInspector.signal_callback( it, True )
-        callback_decl = self.objectInspector.signal_callback_full( it, indent = "    " )
+        
+        # podemos usar um callback existente ou criar um novo
+        i = self.comboCallbacks.get_active()
+        if i == -1 or i == 0:
+            callback_name = self.objectInspector.signal_callback( it, True )
+            callback_decl = self.objectInspector.signal_callback_full( it, indent = "    " )
+        else:
+            callback_name = self.storeCallbacks[i][1]
+            callback_decl = None
+        
+        
+        # podemos usar connect() ou connect_after(). depois de fazer isso,
+        # volta pro estado default, que é connect() simplesmente.
+        callback_after = self.checkConnectAfter.get_active()
+        self.checkConnectAfter.set_active( False )        
 
         sig_implemented, sig_line = self.analyser.check_obj_signal( \
             obj_name, event_name )
@@ -142,9 +179,9 @@ class IDE:
             return
 
         self.analyser.code_add_for_event( obj_name, event_name, \
-            callback_name, callback_decl )
+            callback_name, callback_decl, callback_after )
 
-        self.on_close()
+        #self.on_close()
 
         while gtk.events_pending():
             gtk.main_iteration( block=False )
@@ -154,6 +191,17 @@ class IDE:
 
         while gtk.events_pending():
             gtk.main_iteration( block=False )
+        
+        
+        self.renova()
+
+
+
+    def renova(self):
+        
+        #self.analyser.re_inspect()
+        self.objectInspector.select_obj( self.objectInspector.selected_obj )
+        self.objectInspector.read_callbacks()
 
 
 
@@ -161,7 +209,7 @@ class IDE:
 
         obj_name = self.objectInspector.selected_obj.get_name()
         self.analyser.code_add_for_get_object( obj_name )
-        self.on_close()
+        #self.on_close()
 
 
 

@@ -107,8 +107,9 @@ class ObjectInspector:
 
 
         self.ide.labAccess.set_markup( \
-            "<small><b>%s</b> is not declared in the code.</small>" % sobj )
-        self.ide.btnImplementObject.set_sensitive( True )
+            ("<small><b>%s</b> is not declared in the code. " + \
+            "<a href=''>Declare</a> </small>") % sobj )
+
 
         if self.ide.analyser:
             aobjs = self.ide.analyser.list_for_get_object
@@ -120,7 +121,6 @@ class ObjectInspector:
                     self.ide.labAccess.set_markup( \
                         "<small><b>%s</b> is declared in the code (<b>line %d</b>)</small>" % \
                         (sobj, lin) )
-                    self.ide.btnImplementObject.set_sensitive( False )
                     break
 
 
@@ -129,7 +129,7 @@ class ObjectInspector:
     def read_callbacks(self):
 
         self.ide.storeCallbacks.clear()
-        self.ide.storeCallbacks.append( ["<small>Create New</small>", None] )
+        self.ide.storeCallbacks.append( ["<small>New Callback</small>", None] )
         
         for proc, line in self.ide.analyser.list_for_proc:
             self.ide.storeCallbacks.append( [\

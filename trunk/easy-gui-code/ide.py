@@ -39,7 +39,6 @@ class IDE:
         self.labAccess = builder.get_object( "labAccess" )
         self.btnOpenGlade = builder.get_object( "btnOpenGlade" )
         self.btnImplementSignal = builder.get_object( "btnImplementSignal" )
-        self.btnImplementObject = builder.get_object( "btnImplementObject" )
         self.listObjects = builder.get_object( "listObjects" )
         self.storeObjects = builder.get_object( "storeObjects" )
         self.checkConnectAfter = builder.get_object("checkConnectAfter")
@@ -65,7 +64,7 @@ class IDE:
         self.window.connect( "delete-event",            self.on_close )
         self.btnOpenGlade.connect( "clicked",           self.on_open_glade )
         self.btnImplementSignal.connect( "clicked",     self.on_implement_signal )
-        self.btnImplementObject.connect( "clicked",     self.on_implement_object )
+        self.labAccess.connect( "activate-link",        self.on_access_activate_link )
         self.listObjects.connect( "cursor-changed",     self.on_list_objects_select )
 
         self.listProps.connect( "cursor-changed",       self.objectInspector.on_select_prop )
@@ -205,11 +204,13 @@ class IDE:
 
 
 
-    def on_implement_object(self, widget):
+    def on_access_activate_link(self, *args):
 
         obj_name = self.objectInspector.selected_obj.get_name()
         self.analyser.code_add_for_get_object( obj_name )
         #self.on_close()
+        
+        self.renova()
 
 
 

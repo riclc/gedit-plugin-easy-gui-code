@@ -74,8 +74,9 @@ class ObjectInspector:
         self.ide.listSignals.append_column( self.column_new_img() )
         self.ide.listSignals.append_column( self.column_new_text(5, True) )
 
-        self.column_new_text(1, use_markup = True, \
-            use_col = self.ide.comboObjects)
+        self.ide.listObjects.append_column( self.column_new_text(1, use_markup = True) )
+        
+        self.column_new_text( 0, use_markup = True, use_col = self.ide.comboCallbacks )
 
 
 
@@ -121,6 +122,23 @@ class ObjectInspector:
                         (sobj, lin) )
                     self.ide.btnImplementObject.set_sensitive( False )
                     break
+
+
+
+
+    def read_callbacks(self):
+
+        self.ide.storeCallbacks.clear()
+        self.ide.storeCallbacks.append( ["<small>Create New</small>", None] )
+        
+        for proc, line in self.ide.analyser.list_for_proc:
+            self.ide.storeCallbacks.append( [\
+                "<small><i><span foreground='blue'>" + \
+                "self</span>.%s</i></small>" % proc,
+                proc] )
+
+        self.ide.comboCallbacks.set_active( 0 )
+        
 
 
 

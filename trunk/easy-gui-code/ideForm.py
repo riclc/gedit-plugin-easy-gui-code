@@ -83,8 +83,8 @@ class Form:
             setattr( self.formControls, obj_name, obj )
 
             if is_basic_object( obj ):
-                sobj = "<b>%s</b> (%s)" % (obj_name, tobj)
-                self.ide.storeObjects.append( [None, sobj, obj, obj_name] )
+                desc_obj = "<b>%s</b> (%s)" % (obj_name, tobj)
+                self.ide.storeObjects.append( [None, desc_obj, obj, obj_name] )
 
             if isinstance( obj, gtk.Window ):
                 self.main_window = obj

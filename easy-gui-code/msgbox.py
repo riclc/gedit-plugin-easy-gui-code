@@ -21,9 +21,11 @@
 import gtk
 
 
-def alert(self, msg, title = "gtkBuilder Selector"):
+def alert(msg, title = "gtkBuilder Selector"):
     dlg = gtk.MessageDialog( type = gtk.MESSAGE_INFO, buttons = gtk.BUTTONS_OK )
     dlg.set_title( title )
     dlg.set_markup( msg )
     dlg.run()
     dlg.destroy()
+    
+

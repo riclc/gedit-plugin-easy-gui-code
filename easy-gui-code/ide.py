@@ -217,7 +217,7 @@ class IDE:
     def on_open_glade(self, sender):
 
         if self.glade_file:
-            os.system( "glade-3 %s &" % self.glade_file )
+            os.system( "glade \"%s\" &" % self.glade_file )
             self.on_close()
         else:
             alert( "No glade file!", "Open Glade file" )

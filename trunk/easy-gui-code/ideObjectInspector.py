@@ -82,7 +82,7 @@ class ObjectInspector:
 
     def select_obj(self, obj):
 
-        sobj = obj.get_name()
+        sobj = gtk.Buildable.get_name( obj )
         tobj = "gtk." + type(obj).__name__
 
         self.selected_obj = obj
@@ -115,7 +115,7 @@ class ObjectInspector:
             aobjs = self.ide.analyser.list_for_get_object
 
             for aobj, aline in aobjs:
-                if aobj == obj.get_name():
+                if aobj == gtk.Buildable.get_name( obj ):
                     lin = aline+1
 
                     self.ide.labAccess.set_markup( \
@@ -178,7 +178,7 @@ class ObjectInspector:
 
         self.ide.storeSignals.clear()
 
-        sobj = obj.get_name()
+        sobj = gtk.Buildable.get_name( obj )
 
         try:
             sigs = gobject.signal_list_names( type(obj) )
@@ -277,7 +277,8 @@ class ObjectInspector:
         event_name = self.ide.storeSignals.get_value( \
             signal_it, 1 ).replace("-", "_")
 
-        callback = "on_" + self.selected_obj.get_name() + "_" + event_name
+        obj_name = gtk.Buildable.get_name( self.selected_obj )
+        callback = "on_" + obj_name + "_" + event_name
 
         if not only_name:
             callback += self.ide.storeSignals.get_value( signal_it, 2 )
@@ -329,7 +330,8 @@ class ObjectInspector:
         prop_type = self.ide.storeProps.get_value( it, 2 )
         prop_default = self.ide.storeProps.get_value( it, 3 )
 
-        code = "self." + self.selected_obj.get_name() + ".set_property( " + \
+        obj_name = gtk.Buildable.get_name( self.selected_obj )
+        code = "self." + obj_name + ".set_property( " + \
             '"' + prop + '"' + ", " + prop_default + " )"
 
         self.ide.analyser.code_add_to_current_line( code )

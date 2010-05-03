@@ -71,23 +71,34 @@ class Form:
         self.formControls.objs = builder.get_objects()
         self.ide.storeObjects.clear()
 
+        ordered_objs = []
+        
         for obj in self.formControls.objs:
 
             tobj = "gtk." + obj.__class__.__name__
-
             try:
-                obj_name = obj.get_name()
+                # before was using obj.get_name(), but that changed with gtk 2.19.2;
+                # now must use GtkBuildable's get_name().
+                obj_name = gtk.Buildable.get_name( obj ) 
             except:
                 obj_name = "untitled_" + tobj + "_" + str(hash(obj))
 
             setattr( self.formControls, obj_name, obj )
-
+            
+            desc_obj = "<b>%s</b> (%s)" % (obj_name, tobj)
+            
             if is_basic_object( obj ):
-                desc_obj = "<b>%s</b> (%s)" % (obj_name, tobj)
-                self.ide.storeObjects.append( [None, desc_obj, obj, obj_name] )
+                ordered_objs.append( [obj_name, obj, desc_obj] )
 
             if isinstance( obj, gtk.Window ):
                 self.main_window = obj
+        
+        
+        ordered_objs.sort()
+        for item in ordered_objs:
+            obj_name, obj, desc_obj = item[0], item[1], item[2]
+            self.ide.storeObjects.append( [None, desc_obj, obj, obj_name] )
+
 
 
         if self.main_window == None:
@@ -222,7 +233,7 @@ class Form:
         #
         if event.type == gtk.gdk._2BUTTON_PRESS:
 
-            sobj = self.ctrl_selected.get_name()
+            sobj = gtk.Buildable.get_name( self.ctrl_selected )
             self.ide.analyser.code_add_for_get_object( sobj )
 
 

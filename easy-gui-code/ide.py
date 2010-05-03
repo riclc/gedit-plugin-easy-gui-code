@@ -96,7 +96,7 @@ class IDE:
 
 
     def on_close(self, *args):
-
+        
         if self.parentWindow:
             self.window.hide()
             return True
@@ -153,7 +153,7 @@ class IDE:
         
         it = self.storeSignals.get_iter( path )
 
-        obj_name = self.objectInspector.selected_obj.get_name()
+        obj_name = gtk.Buildable.get_name( self.objectInspector.selected_obj )
         event_name = self.storeSignals.get_value( it, 1 )
         
         # podemos usar um callback existente ou criar um novo
@@ -206,7 +206,7 @@ class IDE:
 
     def on_access_activate_link(self, *args):
 
-        obj_name = self.objectInspector.selected_obj.get_name()
+        obj_name = gtk.Buildable.get_name( self.objectInspector.selected_obj )
         self.analyser.code_add_for_get_object( obj_name )
         #self.on_close()
         

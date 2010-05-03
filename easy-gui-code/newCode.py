@@ -98,7 +98,7 @@ class NewCode:
                 continue
 
             try:
-                obj_name = obj.get_name()
+                obj_name = gtk.Buildable.get_name( obj )
             except:
                 continue
 
@@ -145,9 +145,7 @@ class %s:
 
         code3 = """
     def run(self, parent_window = None):
-
         self.%s.show()
-
         self.parent_window = parent_window
         if self.parent_window:
             self.%s.set_transient_for( parent_window )
@@ -156,7 +154,6 @@ class %s:
 
 
     def on_close(self, *args):
-
         if self.parent_window:
             self.%s.hide()
             return True

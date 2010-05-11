@@ -21,7 +21,7 @@ import gtk
 import cairo
 
 from basicObjects import *
-
+from ideObjectList import *
 
 
 
@@ -64,11 +64,8 @@ class Form:
 
     def load_from_file(self, glade_filename):
 
-        builder = gtk.Builder()
-        builder.add_from_file( glade_filename )
-
         self.formControls = FormControls()
-        self.formControls.objs = builder.get_objects()
+        self.formControls.objs = get_object_list_from_file( glade_filename )
         self.ide.storeObjects.clear()
 
         ordered_objs = []
@@ -76,12 +73,7 @@ class Form:
         for obj in self.formControls.objs:
 
             tobj = "gtk." + obj.__class__.__name__
-            try:
-                # before was using obj.get_name(), but that changed with gtk 2.19.2;
-                # now must use GtkBuildable's get_name().
-                obj_name = gtk.Buildable.get_name( obj ) 
-            except:
-                obj_name = "untitled_" + tobj + "_" + str(hash(obj))
+            obj_name = get_object_name( obj )
 
             setattr( self.formControls, obj_name, obj )
             
@@ -233,7 +225,7 @@ class Form:
         #
         if event.type == gtk.gdk._2BUTTON_PRESS:
 
-            sobj = gtk.Buildable.get_name( self.ctrl_selected )
+            sobj = get_object_name( self.ctrl_selected )
             self.ide.analyser.code_add_for_get_object( sobj )
 
 

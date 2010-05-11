@@ -12,6 +12,7 @@ from images import Images, ObjectImages
 from ideForm import Form
 from ideFormTitleBar import draw_titlebar
 from ideObjectInspector import ObjectInspector
+from ideObjectList import get_object_name
 
 
 class IDE:
@@ -153,7 +154,7 @@ class IDE:
         
         it = self.storeSignals.get_iter( path )
 
-        obj_name = gtk.Buildable.get_name( self.objectInspector.selected_obj )
+        obj_name = get_object_name( self.objectInspector.selected_obj )
         event_name = self.storeSignals.get_value( it, 1 )
         
         # podemos usar um callback existente ou criar um novo
@@ -206,7 +207,7 @@ class IDE:
 
     def on_access_activate_link(self, *args):
 
-        obj_name = gtk.Buildable.get_name( self.objectInspector.selected_obj )
+        obj_name = get_object_name( self.objectInspector.selected_obj )
         self.analyser.code_add_for_get_object( obj_name )
         #self.on_close()
         

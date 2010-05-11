@@ -22,6 +22,7 @@ import os.path
 import gtksourceview2
 
 from basicObjects import *
+from ideObjectList import get_object_name
 
 
 class NewCode:
@@ -98,7 +99,7 @@ class NewCode:
                 continue
 
             try:
-                obj_name = gtk.Buildable.get_name( obj )
+                obj_name = get_object_name( obj )
             except:
                 continue
 

@@ -23,6 +23,7 @@ import pango
 import os.path
 
 from images import Images
+from ideObjectList import get_object_name
 
 
 
@@ -82,7 +83,7 @@ class ObjectInspector:
 
     def select_obj(self, obj):
 
-        sobj = gtk.Buildable.get_name( obj )
+        sobj = get_object_name( obj )
         tobj = "gtk." + type(obj).__name__
 
         self.selected_obj = obj
@@ -115,7 +116,7 @@ class ObjectInspector:
             aobjs = self.ide.analyser.list_for_get_object
 
             for aobj, aline in aobjs:
-                if aobj == gtk.Buildable.get_name( obj ):
+                if aobj == get_object_name( obj ):
                     lin = aline+1
 
                     self.ide.labAccess.set_markup( \
@@ -178,10 +179,20 @@ class ObjectInspector:
 
         self.ide.storeSignals.clear()
 
-        sobj = gtk.Buildable.get_name( obj )
+        sobj = get_object_name( obj )
 
         try:
             sigs = gobject.signal_list_names( type(obj) )
+
+            # gets signals from all implemented interfaces too.
+            # for example, gtk.Entry implements gtk.Editable, which has
+            # the "changed" signal, but that is not listed on
+            # gtk.Entry's signals.
+            # 
+            interfaces = gobject.type_interfaces( type(obj) )
+            for interface in interfaces:
+                sigs += gobject.signal_list_names( interface )
+
         except:
             sigs = []
 
@@ -277,7 +288,7 @@ class ObjectInspector:
         event_name = self.ide.storeSignals.get_value( \
             signal_it, 1 ).replace("-", "_")
 
-        obj_name = gtk.Buildable.get_name( self.selected_obj )
+        obj_name = get_object_name( self.selected_obj )
         callback = "on_" + obj_name + "_" + event_name
 
         if not only_name:
@@ -330,7 +341,7 @@ class ObjectInspector:
         prop_type = self.ide.storeProps.get_value( it, 2 )
         prop_default = self.ide.storeProps.get_value( it, 3 )
 
-        obj_name = gtk.Buildable.get_name( self.selected_obj )
+        obj_name = get_object_name( self.selected_obj )
         code = "self." + obj_name + ".set_property( " + \
             '"' + prop + '"' + ", " + prop_default + " )"
 

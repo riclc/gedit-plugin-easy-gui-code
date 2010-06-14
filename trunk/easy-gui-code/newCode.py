@@ -22,7 +22,7 @@ import os.path
 import gtksourceview2
 
 from basicObjects import *
-from ideObjectList import get_object_name
+from ideObjectList import *
 
 
 class NewCode:
@@ -87,15 +87,13 @@ class NewCode:
 
     def gen_code(self, doc, glade_file ):
 
-        b = gtk.Builder()
-        b.add_from_file( glade_file )
-        objs = b.get_objects()
+        objs = get_object_list_from_file( glade_file )
 
         code_objs = ""
         main_window = ""
 
         for obj in objs:
-            if is_utility_object( obj ):
+            if not is_basic_object( obj ):
                 continue
 
             try:

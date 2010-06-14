@@ -36,9 +36,9 @@ def get_object_list_from_file(f):
     builder = gtk.Builder()
     builder.add_from_file( f )
 
-    objs = []
-    
+    objs = []    
     obj_id_list = get_object_name_list_from_file( f )
+    
     for obj_id in obj_id_list:
         obj_instance = builder.get_object( obj_id )
         obj_instance.set_data( "ide-builder-id", obj_id )

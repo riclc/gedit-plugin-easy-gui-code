@@ -45,3 +45,4 @@ def is_design_object(obj):
 def is_basic_object(obj):
     return is_non_widget_but_important(obj) or (\
         isinstance(obj, gtk.Widget) and not is_design_object(obj) )
+

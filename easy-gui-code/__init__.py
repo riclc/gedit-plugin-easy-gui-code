@@ -96,14 +96,14 @@ class GtkBuilderSelectorPlugin(gedit.Plugin):
         self.analyser.inspect( doc, view )
 
         doc_file = doc.get_uri()
-        if not doc_file:
+        if doc_file == None:
             NewCode().run( parentWindow = self.window, doc = doc )
             return
 
         doc_file = gio.File( doc_file ).get_path()
         doc_dir = os.path.dirname( doc_file )
 
-        if not self.analyser.builder_file:
+        if self.analyser.builder_file == None:
             NewCode().run( parentWindow = self.window, doc = doc, _dir = doc_dir )
             return
 

@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
@@ -163,6 +163,17 @@ gtk.Window</property>
                       <packing>
                         <property name="expand">False</property>
                         <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="labInvalidObjects">
+                        <property name="xalign">0</property>
+                        <property name="label" translatable="yes">&lt;small&gt;&lt;span foreground='red'&gt;You have invalid objects declared.&lt;/span&gt; &lt;a href='fix' title='Remove declaration lines'&gt;Fix&lt;/a&gt;&lt;/small&gt;</property>
+                        <property name="use_markup">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">2</property>
                       </packing>
                     </child>
                   </object>

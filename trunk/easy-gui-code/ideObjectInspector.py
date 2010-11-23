@@ -33,7 +33,7 @@ class ObjectInspector:
 
         self.ide = ide
         self.prepare_columns()
-
+        self.selected_obj = None
 
 
     def column_new_img(self):
@@ -83,10 +83,12 @@ class ObjectInspector:
 
     def select_obj(self, obj):
 
+        self.selected_obj = obj
+        if obj == None:
+            return
+        
         sobj = get_object_name( obj )
         tobj = "gtk." + type(obj).__name__
-
-        self.selected_obj = obj
 
         self.ide.labObject.set_markup( \
             "<b><big>" + sobj + "</big></b>\n" + \
@@ -109,7 +111,7 @@ class ObjectInspector:
 
         self.ide.labAccess.set_markup( \
             ("<small><b>%s</b> is not declared in the code. " + \
-            "<a href=''>Declare</a> </small>") % sobj )
+            "<a href='declare' title='Add <i>get_object( )</i> declaration'>Declare</a> </small>") % sobj )
 
 
         if self.ide.analyser:
@@ -346,3 +348,4 @@ class ObjectInspector:
             '"' + prop + '"' + ", " + prop_default + " )"
 
         self.ide.analyser.code_add_to_current_line( code )
+        

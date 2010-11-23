@@ -45,6 +45,7 @@ class IDE:
         self.checkConnectAfter = builder.get_object("checkConnectAfter")
         self.comboCallbacks = builder.get_object( "comboCallbacks" )
         self.storeCallbacks = builder.get_object( "storeCallbacks" )
+        self.labInvalidObjects = builder.get_object("labInvalidObjects")        
 
         self.textInfo.modify_base( gtk.STATE_NORMAL, gtk.gdk.color_parse("#ffffbd") )
         self.textInfo.modify_font( pango.FontDescription("8") )
@@ -72,6 +73,7 @@ class IDE:
         self.listSignals.connect( "cursor-changed",     self.objectInspector.on_select_signal )
         self.listProps.connect( "row-activated",        self.objectInspector.on_exec_prop )
         self.listSignals.connect( "row-activated",      self.on_implement_signal )
+        self.labInvalidObjects.connect( "activate-link", self.on_labInvalidObjects_activate_link )
 
 
 
@@ -84,8 +86,10 @@ class IDE:
 
         self.window.show()
 
-        if self.glade_file:
+        if self.glade_file != None:
             self.form.load_from_file( glade_file )
+            if self.analyser != None:
+                self.check_for_objects_declared()
         
         self.objectInspector.read_callbacks()
 
@@ -98,7 +102,7 @@ class IDE:
 
     def on_close(self, *args):
         
-        if self.parentWindow:
+        if hasattr(self, 'parentWindow') and self.parentWindow != None:
             self.window.hide()
             return True
         else:
@@ -199,10 +203,53 @@ class IDE:
 
     def renova(self):
         
-        #self.analyser.re_inspect()
         self.objectInspector.select_obj( self.objectInspector.selected_obj )
         self.objectInspector.read_callbacks()
 
+        self.analyser.re_inspect()
+        self.check_for_objects_declared()
+
+
+    def check_for_objects_declared(self):
+        
+        # checks if all declared objects in the code [self.xx = builder.get_object('xx')]
+        # are indeed declared in the glade file.
+        #
+        not_found = []
+        
+        objs = self.analyser.list_for_get_object # [obj, line]
+        for sobj, line_num in objs:
+            
+            found_in_glade = False
+            for obj_info in self.storeObjects:
+                if obj_info[3] == sobj:
+                    found_in_glade = True
+                    break
+            
+            if not found_in_glade:
+                not_found.append( [sobj, line_num] )
+        
+        self.labInvalidObjects.set_visible( len(not_found) > 0 )
+        self.labInvalidObjects.set_data( "easy-gui-code-invalid-objects", not_found )
+
+            
+
+    def on_labInvalidObjects_activate_link(self, *args):
+
+        self.labInvalidObjects.hide()
+        not_found = self.labInvalidObjects.get_data( "easy-gui-code-invalid-objects" )
+
+        lines_to_remove = [ line_num for sobj, line_num in not_found ]
+        lines_to_remove.sort( reverse=True )
+        
+        for line_to_remove in lines_to_remove:
+            print "Removing line %d..." % (line_to_remove+1)
+        
+        self.analyser.code_remove( lines_to_remove )
+                    
+        self.renova()        
+        return True
+    
 
 
     def on_access_activate_link(self, *args):
@@ -212,6 +259,7 @@ class IDE:
         #self.on_close()
         
         self.renova()
+        return True
 
 
 

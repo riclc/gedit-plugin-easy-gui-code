@@ -238,6 +238,9 @@ class DocAnalyser:
 
     def inspect_line(self, lin, lin_num ):
 
+        if lin[0] == "#":
+            return
+        
         if self.var_builder == None:
             self.try_var_builder( lin )
 
@@ -340,6 +343,25 @@ class DocAnalyser:
         self.view.scroll_to_iter( it, within_margin = 0.05, \
             use_align = True, xalign = 0.0, yalign = 1.0 )
 
+
+    def code_remove(self, lines):
+        
+        self.doc.begin_user_action()
+        try:
+            for line in lines:
+                it1 = self.doc.get_iter_at_line( line )
+                it2 = it1.copy()
+                it2.forward_to_line_end()
+                it2.forward_char()
+                
+                self.doc.delete( it1, it2 ) # emits "delete_range" signal
+                
+                # processes the "delete_range" emitted signal above        
+                #while gtk.events_pending():
+                #    gtk.main_iteration( block=False )
+                
+        finally:
+            self.doc.end_user_action()
 
 
 

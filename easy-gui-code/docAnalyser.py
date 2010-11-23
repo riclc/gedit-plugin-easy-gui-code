@@ -238,6 +238,9 @@ class DocAnalyser:
 
     def inspect_line(self, lin, lin_num ):
 
+        if len(lin) == 0:
+            return
+        
         if lin[0] == "#":
             return
         

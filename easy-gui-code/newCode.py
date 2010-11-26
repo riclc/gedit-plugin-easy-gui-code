@@ -93,7 +93,7 @@ class NewCode:
         main_window = ""
 
         for obj in objs:
-            if not is_basic_object( obj ):
+            if not is_basic_object( obj ) or is_container_object( obj ):
                 continue
 
             try:

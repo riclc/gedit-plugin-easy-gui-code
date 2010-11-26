@@ -46,6 +46,7 @@ class IDE:
         self.comboCallbacks = builder.get_object( "comboCallbacks" )
         self.storeCallbacks = builder.get_object( "storeCallbacks" )
         self.labInvalidObjects = builder.get_object("labInvalidObjects")        
+        self.checkContainers = builder.get_object( "checkContainers" )
 
         self.textInfo.modify_base( gtk.STATE_NORMAL, gtk.gdk.color_parse("#ffffbd") )
         self.textInfo.modify_font( pango.FontDescription("8") )
@@ -74,6 +75,7 @@ class IDE:
         self.listProps.connect( "row-activated",        self.objectInspector.on_exec_prop )
         self.listSignals.connect( "row-activated",      self.on_implement_signal )
         self.labInvalidObjects.connect( "activate-link", self.on_labInvalidObjects_activate_link )
+        self.checkContainers.connect( "toggled", self.on_checkContainers_toggled )
 
 
 
@@ -221,8 +223,12 @@ class IDE:
         for sobj, line_num in objs:
             
             found_in_glade = False
-            for obj_info in self.storeObjects:
-                if obj_info[3] == sobj:
+
+            #for obj_info in self.storeObjects:
+            #    if obj_info[3] == sobj:
+            for obj in self.form.formControls.objs:
+                if get_object_name( obj ) == sobj:
+                    
                     found_in_glade = True
                     break
             
@@ -261,6 +267,10 @@ class IDE:
         self.renova()
         return True
 
+
+
+    def on_checkContainers_toggled(self, widget):
+        self.form.read_objects()
 
 
     def on_open_glade(self, sender):

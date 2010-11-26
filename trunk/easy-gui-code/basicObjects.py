@@ -23,10 +23,11 @@ import gtk
 def is_non_widget_but_important(obj):
     return \
         type(obj) == gtk.Adjustment or \
-        type(obj) == gtk.ListStore
+        type(obj) == gtk.ListStore or \
+        type(obj) == gtk.TreeStore
 
     
-def is_design_object(obj):
+def is_container_object(obj):
     return \
         type(obj) == gtk.HBox or \
         type(obj) == gtk.VBox or \
@@ -43,6 +44,5 @@ def is_design_object(obj):
 
 
 def is_basic_object(obj):
-    return is_non_widget_but_important(obj) or (\
-        isinstance(obj, gtk.Widget) and not is_design_object(obj) )
+    return is_non_widget_but_important(obj) or isinstance(obj, gtk.Widget)
 

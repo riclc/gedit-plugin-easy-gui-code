@@ -136,8 +136,8 @@ class ObjectInspector:
         
         for proc, line in self.ide.analyser.list_for_proc:
             self.ide.storeCallbacks.append( [\
-                "<small><i><span foreground='blue'>" + \
-                "self</span>.%s</i></small>" % proc,
+                "<small><i><b>" + \
+                "self</b>.%s</i></small>" % proc,
                 proc] )
 
         self.ide.comboCallbacks.set_active( 0 )

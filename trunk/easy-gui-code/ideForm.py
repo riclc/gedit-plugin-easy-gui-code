@@ -66,8 +66,12 @@ class Form:
 
         self.formControls = FormControls()
         self.formControls.objs = get_object_list_from_file( glade_filename )
+        self.read_objects()
+        self.config_objects()
+    
+    
+    def read_objects(self):
         self.ide.storeObjects.clear()
-
         ordered_objs = []
         
         for obj in self.formControls.objs:
@@ -80,8 +84,10 @@ class Form:
             desc_obj = "<b>%s</b> (%s)" % (obj_name, tobj)
             
             if is_basic_object( obj ):
-                ordered_objs.append( [obj_name, obj, desc_obj] )
+                if not is_container_object(obj) or self.ide.checkContainers.get_active():
+                    ordered_objs.append( [obj_name, obj, desc_obj] )
 
+                
             if isinstance( obj, gtk.Window ):
                 self.main_window = obj
         
@@ -93,10 +99,12 @@ class Form:
 
 
 
+
+    def config_objects(self):        
+    
         if self.main_window == None:
             print("*** No window found in the glade file!")
             return
-
 
         # define a aparencia do form
         #
@@ -107,8 +115,6 @@ class Form:
         w, h = self.main_window.get_size()
         h += self.ide.formTitleBar.get_size_request()[1]
         self.ide.formFrame.set_size_request( w, h )
-
-
 
         child = self.main_window.get_child()
         self.main_window.remove( child )

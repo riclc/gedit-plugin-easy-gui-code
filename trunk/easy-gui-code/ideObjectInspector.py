@@ -20,17 +20,15 @@
 import gtk
 import gobject
 import pango
-import os.path
+import os
 
-from images import Images
-from ideObjectList import get_object_name
+from utils import *
+
 
 
 
 class ObjectInspector:
-
     def __init__(self, ide):
-
         self.ide = ide
         self.prepare_columns()
         self.selected_obj = None
@@ -67,7 +65,6 @@ class ObjectInspector:
 
 
     def prepare_columns(self):
-
         self.ide.listProps.append_column( self.column_new_img() )
         self.ide.listProps.append_column( self.column_new_text(1) )
         self.ide.listProps.append_column( self.column_new_text(2) )
@@ -81,11 +78,9 @@ class ObjectInspector:
 
 
 
-    def select_obj(self, obj):
-
+    def select_obj(self, obj, select_item_in_list=True):
         self.selected_obj = obj
-        if obj == None:
-            return
+        if obj == None: return
         
         sobj = get_object_name( obj )
         tobj = "gtk." + type(obj).__name__
@@ -94,29 +89,31 @@ class ObjectInspector:
             "<b><big>" + sobj + "</big></b>\n" + \
             tobj )
 
-
-        if self.ide.objectImages.has_image( tobj ):
-            img_name = tobj
-        else:
-            img_name = "gtk.Widget"
-
-        self.ide.imgObject.set_from_pixbuf( \
-                self.ide.objectImages.by_name( img_name ) )
-
+        pb = get_object_image_by_name( tobj )
+        if pb == None:
+            pb = get_object_image_by_name( "gtk.Widget" )
+        self.ide.imgObject.set_from_pixbuf( pb )
 
 
         self.read_props( obj )
         self.read_signals( obj )
 
-
         self.ide.labAccess.set_markup( \
             ("<small><b>%s</b> is not declared in the code. " + \
             "<a href='declare' title='Add <i>get_object( )</i> declaration'>Declare</a> </small>") % sobj )
 
+    
+        if select_item_in_list:
+            i = -1
+            for k in range( len(self.ide.storeObjects) ):
+                if self.ide.storeObjects[k][2] == obj:
+                    i = k
+                    break
+            if i != -1: self.ide.listObjects.set_cursor( (i,) )
+
 
         if self.ide.analyser:
             aobjs = self.ide.analyser.list_for_get_object
-
             for aobj, aline in aobjs:
                 if aobj == get_object_name( obj ):
                     lin = aline+1
@@ -130,7 +127,6 @@ class ObjectInspector:
 
 
     def read_callbacks(self):
-
         self.ide.storeCallbacks.clear()
         self.ide.storeCallbacks.append( ["<small>New Callback</small>", None] )
         
@@ -146,7 +142,6 @@ class ObjectInspector:
 
 
     def read_props(self, obj):
-
         self.ide.storeProps.clear()
 
         try:
@@ -161,26 +156,24 @@ class ObjectInspector:
             pdesc = prop.blurb
 
             if ptipo == 'gint' or ptipo == 'guint':
-                img = self.ide.images.by_name( 'prop_int' )
+                img = get_image_by_name( 'prop_int' )
             elif ptipo == 'gboolean':
-                img = self.ide.images.by_name( 'prop_bool' )
+                img = get_image_by_name( 'prop_bool' )
             elif ptipo == 'gchararray':
-                img = self.ide.images.by_name( 'prop_string' )
+                img = get_image_by_name( 'prop_string' )
             elif ptipo == 'gfloat':
-                img = self.ide.images.by_name( 'prop_float' )
+                img = get_image_by_name( 'prop_float' )
             elif ptipo == 'GdkColor':
-                img = self.ide.images.by_name( 'prop_color' )
+                img = get_image_by_name( 'prop_color' )
             else:
-                img = self.ide.images.by_name( 'prop_default' )
+                img = get_image_by_name( 'prop_default' )
 
             self.ide.storeProps.append( [img, pname, ptipo, pdefault, pdesc] )
 
 
 
     def read_signals(self, obj):
-
         self.ide.storeSignals.clear()
-
         sobj = get_object_name( obj )
 
         try:
@@ -234,13 +227,13 @@ class ObjectInspector:
 
             s_sig_params = "(" + s_sig_params + ")"
 
-            img = self.ide.images.by_name( 'signal_default' )
+            img = get_image_by_name( 'signal_default' )
 
             if details[2].pytype != type(obj):
-                img = self.ide.images.by_name( 'signal_parent' )
+                img = get_image_by_name( 'signal_parent' )
 
             if "-event" in sig:
-                img = self.ide.images.by_name( 'signal_event' )
+                img = get_image_by_name( 'signal_event' )
 
 
             sig_implemented, sig_line = self.ide.analyser.check_obj_signal( \
@@ -259,9 +252,7 @@ class ObjectInspector:
 
 
     def get_parent_list(self, obj):
-
         tobj = type(obj)
-
         ancs = []
         while True:
             try:
@@ -286,7 +277,6 @@ class ObjectInspector:
 
 
     def signal_callback(self, signal_it, only_name = False):
-
         event_name = self.ide.storeSignals.get_value( \
             signal_it, 1 ).replace("-", "_")
 
@@ -302,7 +292,6 @@ class ObjectInspector:
 
 
     def signal_callback_full(self, signal_it, indent = ""):
-
         return \
             indent + "def " + self.signal_callback( signal_it ) + ":\n\n" + \
             indent + "    " + self.ide.storeSignals.get_value( signal_it, 3 )
@@ -311,10 +300,8 @@ class ObjectInspector:
 
 
     def on_select_prop(self, treeview):
-
         path, col = self.ide.listProps.get_cursor()
-        if path == None:
-            return
+        if path == None: return
 
         it = self.ide.storeProps.get_iter( path )
 
@@ -325,10 +312,8 @@ class ObjectInspector:
 
 
     def on_select_signal(self, treeview):
-
         path, col = self.ide.listSignals.get_cursor()
-        if path == None:
-            return
+        if path == None: return
 
         it = self.ide.storeSignals.get_iter( path )
         self.ide.textInfo.get_buffer().set_text( self.signal_callback_full(it) )
@@ -336,7 +321,6 @@ class ObjectInspector:
 
 
     def on_exec_prop(self, treeview, path, col):
-
         it = self.ide.storeProps.get_iter( path )
 
         prop = self.ide.storeProps.get_value( it, 1 )

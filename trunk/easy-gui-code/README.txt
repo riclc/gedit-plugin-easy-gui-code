@@ -2,7 +2,7 @@ Easy GUI Code
 -------------
 Automatic gui-code generation for PyGTK programs
 
-Copyright (C) 2009
+Copyright (C) 2009, 2011
 Ricardo Lenz
 
 

@@ -5,20 +5,15 @@ import gtk
 import cairo
 import pango
 import os
-import os.path
 
-from msgbox import alert
-from images import Images, ObjectImages
-from ideForm import Form
-from ideFormTitleBar import draw_titlebar
+from utils import *
+from ideForm import *
 from ideObjectInspector import ObjectInspector
-from ideObjectList import get_object_name
+
 
 
 class IDE:
-
     def __init__(self):
-
         mydir = os.path.dirname(__file__) 
         builder = gtk.Builder()
         builder.add_from_file( os.path.join( mydir, "ide.glade" ) )
@@ -50,17 +45,16 @@ class IDE:
 
         self.textInfo.modify_base( gtk.STATE_NORMAL, gtk.gdk.color_parse("#ffffbd") )
         self.textInfo.modify_font( pango.FontDescription("8") )
-        self.formView.modify_bg( gtk.STATE_NORMAL, gtk.gdk.color_parse("white") )
+        #self.formView.modify_bg( gtk.STATE_NORMAL, gtk.gdk.color_parse("white") )
+        self.formView.modify_bg( gtk.STATE_NORMAL, gtk.gdk.color_parse("#7b7878") )
+        
+        self.formTitleBar.set_app_paintable( True )
+        self.formTitleBar.modify_bg( gtk.STATE_NORMAL, gtk.gdk.color_parse("#7b7878") )
 
-        self.images = Images()
-        self.objectImages = ObjectImages()
         self.objectInspector = ObjectInspector( self )
         self.form = Form( self )
         self.analyser = None
         self.glade_file = None
-
-        self.formTitleBar.set_app_paintable( True )
-        self.titleBarClose = self.images.by_name( "close" )
 
         self.formTitleBar.connect( "expose-event",      self.on_draw_titlebar )
         self.formBox.connect_after( "expose-event",     self.on_draw_border )
@@ -75,14 +69,12 @@ class IDE:
         self.listProps.connect( "row-activated",        self.objectInspector.on_exec_prop )
         self.listSignals.connect( "row-activated",      self.on_implement_signal )
         self.labInvalidObjects.connect( "activate-link", self.on_labInvalidObjects_activate_link )
-        self.checkContainers.connect( "toggled", self.on_checkContainers_toggled )
+        self.checkContainers.connect( "toggled",        self.on_checkContainers_toggled )
 
 
 
 
-    def run(self, glade_file = None, parentWindow = None, \
-            analyser = None):
-
+    def run(self, glade_file = None, parentWindow = None, analyser = None):
         self.analyser = analyser
         self.glade_file = glade_file
 
@@ -103,7 +95,6 @@ class IDE:
 
 
     def on_close(self, *args):
-        
         if hasattr(self, 'parentWindow') and self.parentWindow != None:
             self.window.hide()
             return True
@@ -113,17 +104,15 @@ class IDE:
 
 
     def on_draw_titlebar(self, sender, event):
-
         cr = event.window.cairo_create()
         w = self.formTitle.get_allocation().width
         h = self.formTitle.get_allocation().height
 
-        draw_titlebar( cr, w, h, self.titleBarClose )
+        self.form.draw_title_bar( cr, w, h )
         return False
 
 
     def on_draw_border(self, sender, event):
-
         cr = event.window.cairo_create()
         w = self.formBox.get_allocation().width
         h = self.formBox.get_allocation().height
@@ -134,10 +123,9 @@ class IDE:
         cr.stroke()
 
         return True
-
+   
 
     def on_list_objects_select(self, *args):
-        
         path, col = self.listObjects.get_cursor()
         if path == None:
             return
@@ -146,14 +134,14 @@ class IDE:
         obj = self.storeObjects.get_value( it, 2 )
         
         self.form.ctrl_selected = obj 
+        self.form.ctrl_over = None
         self.formContainer.queue_draw()        
-        self.objectInspector.select_obj( obj )
+        self.objectInspector.select_obj( obj, select_item_in_list=False )
 
 
 
 
     def on_implement_signal(self, *args):
-
         path, col = self.listSignals.get_cursor()
         if path == None:
             return
@@ -189,22 +177,18 @@ class IDE:
 
         #self.on_close()
 
-        while gtk.events_pending():
-            gtk.main_iteration( block=False )
+        while gtk.events_pending(): gtk.main_iteration( block=False )
 
         self.analyser.view.place_cursor_onscreen()
         self.analyser.view.grab_focus()
 
-        while gtk.events_pending():
-            gtk.main_iteration( block=False )
-        
+        while gtk.events_pending(): gtk.main_iteration( block=False )
         
         self.renova()
 
 
 
     def renova(self):
-        
         self.objectInspector.select_obj( self.objectInspector.selected_obj )
         self.objectInspector.read_callbacks()
 
@@ -213,7 +197,6 @@ class IDE:
 
 
     def check_for_objects_declared(self):
-        
         # checks if all declared objects in the code [self.xx = builder.get_object('xx')]
         # are indeed declared in the glade file.
         #
@@ -241,7 +224,6 @@ class IDE:
             
 
     def on_labInvalidObjects_activate_link(self, *args):
-
         self.labInvalidObjects.hide()
         not_found = self.labInvalidObjects.get_data( "easy-gui-code-invalid-objects" )
 
@@ -259,14 +241,11 @@ class IDE:
 
 
     def on_access_activate_link(self, *args):
-
         obj_name = get_object_name( self.objectInspector.selected_obj )
         self.analyser.code_add_for_get_object( obj_name )
-        #self.on_close()
         
         self.renova()
         return True
-
 
 
     def on_checkContainers_toggled(self, widget):
@@ -274,7 +253,6 @@ class IDE:
 
 
     def on_open_glade(self, sender):
-
         if self.glade_file:
             os.system( "glade \"%s\" &" % self.glade_file )
             self.on_close()
@@ -284,3 +262,4 @@ class IDE:
 
 if __name__ == '__main__':
     IDE().run( glade_file = "newCode.glade" )
+

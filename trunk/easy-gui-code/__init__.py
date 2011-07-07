@@ -22,11 +22,10 @@ import gedit
 import gtk
 import gio
 import os
-import os.path
 
-from msgbox import alert
+from utils import *
 from docAnalyser import DocAnalyser
-from newCode import NewCode
+from newCode import *
 from ide import IDE
 
 
@@ -49,8 +48,7 @@ ui = """
 
 
 
-class GtkBuilderSelectorPlugin(gedit.Plugin):
-
+class EasyGuiCodePlugin(gedit.Plugin):
     def __init__(self):
         gedit.Plugin.__init__(self)
 
@@ -63,7 +61,7 @@ class GtkBuilderSelectorPlugin(gedit.Plugin):
 
     def activate(self, window):
         self.window = window
-        self.action_group = gtk.ActionGroup('GtkBuilderSelectorPluginActions')
+        self.action_group = gtk.ActionGroup('EasyGuiCodePluginActions')
         self.action_group.add_actions([(
             'OpenGuiFile',
             gtk.STOCK_PAGE_SETUP,
@@ -92,7 +90,6 @@ class GtkBuilderSelectorPlugin(gedit.Plugin):
     def on_open_gui_file_activate(self, *args):
         doc = self.window.get_active_document()
         view = self.window.get_active_view()
-
         self.analyser.inspect( doc, view )
 
         doc_file = doc.get_uri()
@@ -108,9 +105,7 @@ class GtkBuilderSelectorPlugin(gedit.Plugin):
             return
 
         glade_file = os.path.join( doc_dir, self.analyser.builder_file )
-        
         if os.path.exists( glade_file ):
-
             IDE().run( \
                 glade_file = glade_file, \
                 parentWindow = self.window, \
@@ -124,3 +119,4 @@ class GtkBuilderSelectorPlugin(gedit.Plugin):
     def update_ui(self, window):
         doc = self.window.get_active_document()
         self.action_group.set_sensitive(doc is not None)
+

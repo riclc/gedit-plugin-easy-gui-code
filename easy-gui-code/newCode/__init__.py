@@ -21,21 +21,26 @@ import gtk
 import os.path
 import gtksourceview2
 
-from basicObjects import *
-from ideObjectList import *
+import sys
+sys.path.append( \
+    os.path.abspath( \
+        os.path.join( \
+            os.path.dirname(__file__),
+            ".." \
+        ) \
+    ) \
+)
+from utils import *
 
 
 class NewCode:
-
     def __init__(self):
-
         mydir = os.path.dirname(__file__)
         builder = gtk.Builder()
         builder.add_from_file( os.path.join( mydir, "newCode.glade" ) )
 
         self.window = builder.get_object( "window" )
         self.fileGlade = builder.get_object( "fileGlade" )
-        self.checkEventDelete = builder.get_object( "checkEventDelete" )
         self.btnOK = builder.get_object( "btnOK" )
         self.btnCancel = builder.get_object( "btnCancel" )
 
@@ -50,14 +55,10 @@ class NewCode:
 
 
     def run(self, parentWindow = None, _dir = "", doc = None):
-
         self.doc = doc
-
-        if _dir:
-            self.fileGlade.set_current_folder( _dir )
+        if _dir: self.fileGlade.set_current_folder( _dir )
 
         self.window.show()
-
         self.parentWindow = parentWindow
         if self.parentWindow:
             self.window.set_transient_for( parentWindow )
@@ -66,7 +67,6 @@ class NewCode:
 
 
     def on_close(self, *args):
-
         if self.parentWindow:
             self.window.hide()
             return True
@@ -76,17 +76,13 @@ class NewCode:
 
 
     def on_ok(self, *args):
-
         filename = self.fileGlade.get_filename()
-
         if self.doc and os.path.exists( filename ):
             self.gen_code( self.doc, filename )
-
         self.on_close()
 
 
     def gen_code(self, doc, glade_file ):
-
         objs = get_object_list_from_file( glade_file )
 
         code_objs = ""
@@ -112,24 +108,20 @@ class NewCode:
             main_window = "window"
 
         code_class = os.path.splitext( os.path.basename( glade_file ) )[0].capitalize()
-
         glade_file_basename = os.path.basename( glade_file )
-
 
         code1 = """#!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
 import gtk
-import os.path
+import os
 import pango
 
 class %s:
-
     def __init__(self):
-
-        mydir = os.path.dirname(__file__)
+        self.my_dir = os.path.dirname(__file__)
         builder = gtk.Builder()
-        builder.add_from_file( os.path.join( mydir, \"%s\" ) )
+        builder.add_from_file( os.path.join( self.my_dir, \"%s\" ) )
 
 %s
 """     % (code_class, glade_file_basename, code_objs)
@@ -139,7 +131,6 @@ class %s:
         self.%s.connect( \"delete-event\", self.on_close )
 
 """     % (main_window)
-
 
 
         code3 = """
@@ -166,20 +157,17 @@ if __name__ == '__main__':
 
 """     % (main_window, main_window, main_window, code_class)
 
-
         code = code1 + code2 + code3
 
         it = doc.get_start_iter()
         doc.insert( it, code )
-
-        while gtk.events_pending():
-            gtk.main_iteration( block=False )
+        while gtk.events_pending(): gtk.main_iteration( block=False )
 
         lang_python = gtksourceview2.language_manager_get_default().get_language("python")
         doc.set_language( lang_python )
 
 
 
-
 if __name__ == '__main__':
     NewCode().run()
+

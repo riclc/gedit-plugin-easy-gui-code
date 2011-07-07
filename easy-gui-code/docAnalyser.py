@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
-
+#
 # Copyright (C) 2009 Ricardo Lenz
 #
 # This program is free software; you can redistribute it and/or modify it under
@@ -16,13 +16,16 @@
 # You should have received a copy of the GNU General Public License along with
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-
+#
 
 import gtk
 
 
-
 class DocAnalyser:
+    def __init__(self):
+        self.doc = None
+        self.view = None
+        self.reset()
 
 
     def reset(self):
@@ -39,12 +42,6 @@ class DocAnalyser:
         self.list_for_connect = [] # [obj, event, callback, line]
         self.list_for_proc = [] # [proc, line]
 
-
-
-    def __init__(self):
-        self.doc = None
-        self.view = None
-        self.reset()
 
 
     def re_inspect(self):
@@ -88,7 +85,6 @@ class DocAnalyser:
 
 
     def find_string(self, lin):
-
         p1 = lin.find( "\"" )
         p2 = lin.find( "\'" )
 
@@ -119,13 +115,8 @@ class DocAnalyser:
 
 
 
-
-
-
     def try_var_builder(self, lin):
-
         pos = lin.find( "gtk.Builder(" )
-
         if pos != -1:
             pos = lin.find( "=" )
             if pos != -1:
@@ -136,11 +127,8 @@ class DocAnalyser:
 
 
 
-
     def try_builder_file(self, lin):
-
         pos = lin.find( "add_from_file" )
-
         if pos != -1:
             pos += len( "add_from_file" )
 
@@ -151,17 +139,13 @@ class DocAnalyser:
                 if pos != -1:
                     self.builder_file = self.find_string( lin )
                     return True
-
         return False
 
 
 
-
     def try_get_object(self, lin, lin_num):
-
         s_get_object = self.var_builder + ".get_object("
         pos = lin.find( s_get_object )
-
         if pos != -1:
             pos += len( s_get_object )
             lin = lin[ pos: ]
@@ -171,37 +155,26 @@ class DocAnalyser:
 
             self.last_line_for_get_object = lin_num
             return True
-
         return False
-
 
 
 
     def try_proc(self, lin, lin_num):
-
         lin = lin.strip()
-
         if lin[:4] == 'def ':
-
             p = lin.find( "(", 4 )
             if p != -1:
-
                 sproc = lin[4:p].strip()
                 self.list_for_proc.append( [sproc, lin_num] )
                 self.last_line_for_proc = lin_num
                 return True
-
-
         return False
 
 
 
-
     def try_connect(self, lin, lin_num):
-
         s_connect = ".connect("
         pos = lin.find( s_connect )
-
         if pos == -1:
             # tenta com connect_after
             s_connect = ".connect_after("
@@ -230,19 +203,14 @@ class DocAnalyser:
                         self.list_for_connect.append( info )
                         self.last_line_for_connect = lin_num
                         return True
-
         return False
 
 
 
 
     def inspect_line(self, lin, lin_num ):
-
-        if len(lin) == 0:
-            return
-        
-        if lin[0] == "#":
-            return
+        if len(lin) == 0: return        
+        if lin[0] == "#": return
         
         if self.var_builder == None:
             self.try_var_builder( lin )
@@ -262,20 +230,14 @@ class DocAnalyser:
 
 
 
-
     def code_add(self, code, insert_at_line = -1, re_inspect = True):
-
         if insert_at_line == -1:
             it = self.doc.get_end_iter()
         else:
             it = self.doc.get_iter_at_line( insert_at_line )
 
         self.doc.insert( it, code )
-
-
-        while gtk.events_pending():
-            gtk.main_iteration( block=False )
-
+        while gtk.events_pending(): gtk.main_iteration( block=False )
 
         if insert_at_line == -1:
             it = self.doc.get_end_iter()
@@ -285,42 +247,33 @@ class DocAnalyser:
         self.view.scroll_to_iter( it, within_margin = 0.05, \
             use_align = True, xalign = 0.0, yalign = 1.0 )
 
-        if re_inspect:
-            self.re_inspect()
+        if re_inspect: self.re_inspect()
 
 
 
     def code_add_to_current_line(self, code):
-
         self.doc.insert_at_cursor( code + "\n" )
-
-        while gtk.events_pending():
-            gtk.main_iteration( block=False )
-
+        while gtk.events_pending(): gtk.main_iteration( block=False )
 
 
 
     def code_add_for_get_object(self, sobj, re_inspect = True):
-
         for obj, lin in self.list_for_get_object:
             if obj == sobj:
                 return # do not add the same object again
 
-        code = "        self.%s = %s.get_object( \"%s\" )\n" % \
-                (sobj, self.var_builder, sobj)
+        code = \
+            "        self.%s = %s.get_object( \"%s\" )\n" % \
+            (sobj, self.var_builder, sobj)
 
         line_num = self.last_line_for_get_object+1
-
         self.code_add( code, line_num, re_inspect )
 
 
-
     def code_add_for_event(self, sobj, sevent, scallback, scallback_decl, callback_after):
-
         # for each code_add, we must re-inspect the code, because the
         # self.last_line_for_xxxx's must be updated.
         #
-
         self.code_add_for_get_object( sobj )
 
         if callback_after:
@@ -333,7 +286,6 @@ class DocAnalyser:
             (sobj, connect_cmd, sevent, "self." + scallback), \
             self.last_line_for_connect+1 )
 
-
         if scallback_decl != None:
             self.code_add( "\n" + scallback_decl + "\n\n", \
                 self.last_line_for_proc-1 )
@@ -341,14 +293,13 @@ class DocAnalyser:
 
 
     def code_goto(self, line):
-
         it = self.doc.get_iter_at_line( line )
         self.view.scroll_to_iter( it, within_margin = 0.05, \
             use_align = True, xalign = 0.0, yalign = 1.0 )
 
 
+
     def code_remove(self, lines):
-        
         self.doc.begin_user_action()
         try:
             for line in lines:
@@ -369,9 +320,9 @@ class DocAnalyser:
 
 
     def check_obj_signal(self, obj_name, signal_name):
-
         for connect in self.list_for_connect:
             if connect[0] == obj_name and connect[1] == signal_name:
                 return True, connect[3]
 
         return False, -1
+

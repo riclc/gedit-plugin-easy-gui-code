@@ -20,10 +20,24 @@
 import gtk
 import cairo
 
-from basicObjects import *
-from ideObjectList import *
+from utils import *
 
 
+TITLE_BAR_COLOR_TOP = '#787772'
+TITLE_BAR_COLOR_BOTTOM = '#3c3b37'
+TITLE_BAR_BTN_RIGHT = 9
+TITLE_BAR_BTN_TOP = 5
+TITLE_BAR_ICON_LEFT = 11
+TITLE_BAR_ICON_TOP = 5
+
+SELECT_BORDER_COLOR1 = '#68402e'
+SELECT_BORDER_COLOR2 = '#b79150'
+SELECT_BORDER_WIDTH_SET   = 1
+SELECT_BORDER_WIDTH_OVER  = 2
+SELECT_BORDER_DASH_SET    = [4, 2]
+SELECT_BORDER_DASH_OVER   = [4, 2]
+SELECT_BORDER_ALPHA_SET   = 1.0
+SELECT_BORDER_ALPHA_OVER  = 0.3
 
 
 class FormControls:
@@ -31,9 +45,7 @@ class FormControls:
 
 
 class ControlArea:
-
     def __init__(self):
-
         self.x = 0
         self.y = 0
         self.w = 0
@@ -42,30 +54,25 @@ class ControlArea:
         self.ctrl = None
 
 
-
-
 class Form:
-
     def __init__(self, ide):
-
         self.ctrl_over = None
         self.ctrl_selected = None
 
-        self.captured_gui = None
-        self.captured_gui_ok = False
+        self.screenshot = None
         self.main_window = None
-        self.main_w = 0
-        self.main_h = 0
         self.areas = []
+
+        self.img_title_bar_btn = get_image_by_name( "title_bar_btn" )
+        self.img_title_bar_icon = get_image_by_name( "title_bar_icon" )
 
         self.ide = ide
 
 
 
     def load_from_file(self, glade_filename):
-
         self.formControls = FormControls()
-        self.formControls.objs = get_object_list_from_file( glade_filename )
+        self.formControls.objs = get_objects_with_names_from_glade_file( glade_filename )
         self.read_objects()
         self.config_objects()
     
@@ -75,22 +82,17 @@ class Form:
         ordered_objs = []
         
         for obj in self.formControls.objs:
-
             tobj = "gtk." + obj.__class__.__name__
             obj_name = get_object_name( obj )
 
             setattr( self.formControls, obj_name, obj )
-            
             desc_obj = "<b>%s</b> (%s)" % (obj_name, tobj)
             
             if is_basic_object( obj ):
                 if not is_container_object(obj) or self.ide.checkContainers.get_active():
                     ordered_objs.append( [obj_name, obj, desc_obj] )
 
-                
-            if isinstance( obj, gtk.Window ):
-                self.main_window = obj
-        
+            if isinstance( obj, gtk.Window ): self.main_window = obj
         
         ordered_objs.sort()
         for item in ordered_objs:
@@ -99,9 +101,7 @@ class Form:
 
 
 
-
-    def config_objects(self):        
-    
+    def config_objects(self):
         if self.main_window == None:
             print("*** No window found in the glade file!")
             return
@@ -116,51 +116,23 @@ class Form:
         h += self.ide.formTitleBar.get_size_request()[1]
         self.ide.formFrame.set_size_request( w, h )
 
-        child = self.main_window.get_child()
-        self.main_window.remove( child )
-        self.ide.formContainer.add( child )
-
-        # na verdade, vamos usar o child do main_window, pois a window em
-        # si eh somente o child junto com um decorator do window manager.
-        #
-        self.main_window = child
+        self.capture_screenshot()
 
         self.ide.formBox.connect( "motion-notify-event", self.on_mouse_move )
         self.ide.formBox.connect( "button-press-event", self.on_mouse_button_press )
         self.ide.formContainer.connect( "expose-event", self.on_expose )
 
-        # temos que mostrar a janela mesmo, de um jeito ou de outro,
-        # pois o gtk usa necessariamente o backend (x11 por ex.) pra
-        # desenhar os widgets. uma nova versao (client-side-windows, csw)
-        # permite desenhar tudo direto no gdk, sem backends. isso podera
-        # ser usado para incorporar texturas, composite, clutter, etc.
-        #
-        self.main_window.show()
-
-        # deixa aparecer na tela com tudo
-        while gtk.events_pending():
-            gtk.main_iteration( block=False )
-
-        # tira uma foto
-        self.screenshot()
-
-        # processa o que ainda tem que processar
-        while gtk.events_pending():
-            gtk.main_iteration( block=False )
-
-        # por fim, tira da tela
-        self.main_window.hide()
 
 
+    def capture_screenshot(self):
+        ow = gtk.OffscreenWindow()
+        self.main_window.get_child().reparent( ow )
+        ow.show()        
+        ow.window.process_updates( update_children=True )
+        self.screenshot = ow.get_pixbuf()
 
-
-    def screenshot(self):
-
-        # supoe que os allocations ja foram feitos.
-
-        self.captured_gui = None
-        self.captured_gui_ok = False
-
+        ####
+        
         self.areas = []
         for obj in self.formControls.objs:
             if isinstance( obj, gtk.Widget ):
@@ -173,36 +145,17 @@ class Form:
                 area.h = a.height
                 area.ctrl = obj
                 area.size = area.w * area.h
-
                 self.areas.append( area )
-
-        self.main_w = self.main_window.get_allocation().width
-        self.main_h = self.main_window.get_allocation().height
-
-        # isso força um expose
-        drawable = self.main_window.get_snapshot( None )
-
-        while gtk.events_pending():
-            gtk.main_iteration( block=False )
-
-        self.captured_gui = gtk.gdk.Pixbuf( gtk.gdk.COLORSPACE_RGB,
-            False, 8, self.main_w, self.main_h )
-        self.captured_gui.get_from_drawable( drawable, \
-            gtk.gdk.colormap_get_system(), 0, 0, 0, 0, self.main_w, self.main_h )
-        self.captured_gui_ok = True
-
 
 
 
     def get_control_at(self, x, y):
-
         menor_size = 0
         menor_size_ctrl = None
 
         for area in self.areas:
             if  x >= area.x and x < area.x + area.w \
                 and y >= area.y and y < area.y + area.h:
-
                 if menor_size_ctrl == None or area.size < menor_size:
                     menor_size = area.size
                     menor_size_ctrl = area.ctrl
@@ -211,93 +164,122 @@ class Form:
 
 
 
-
     def on_mouse_move(self, widget, event):
         x = int( event.x )
         y = int( event.y )
-
         self.ctrl_over = self.get_control_at( x, y )
         self.ide.formContainer.queue_draw()
-
         return True
 
 
 
     def on_mouse_button_press(self, widget, event):
-
         # double click? if so, process the code add first,
         # then read its props later (so the updated information
         # about the line on which it is declared is shown)
         #
         if event.type == gtk.gdk._2BUTTON_PRESS:
-
             sobj = get_object_name( self.ctrl_selected )
             self.ide.analyser.code_add_for_get_object( sobj )
 
-
         x = int( event.x )
         y = int( event.y )
-
+        
         self.ctrl_selected = self.get_control_at( x, y )
         self.ide.formContainer.queue_draw()
         self.ide.objectInspector.select_obj( self.ctrl_selected )
-
         return True
 
 
 
+
     def on_expose(self, widget, event):
+        cr = event.window.cairo_create()
+        
+        cr.set_source_pixbuf( self.screenshot, 0, 0 )
+        cr.paint()
+        
+        r1,g1,b1 = hex_to_rgb( SELECT_BORDER_COLOR1 )
+        r2,g2,b2 = hex_to_rgb( SELECT_BORDER_COLOR2 )
+        
+        for a in self.areas:
+            if a.ctrl == self.ctrl_selected:
+                cr.set_dash( SELECT_BORDER_DASH_SET )
+                cr.set_line_width( SELECT_BORDER_WIDTH_SET )
+                offset = 0.5
+                alpha = SELECT_BORDER_ALPHA_SET
+            elif a.ctrl == self.ctrl_over:
+                cr.set_dash( SELECT_BORDER_DASH_OVER )
+                cr.set_line_width( SELECT_BORDER_WIDTH_OVER )
+                offset = 0
+                alpha = SELECT_BORDER_ALPHA_OVER
+            else:
+                continue
 
-        if not self.captured_gui_ok:
-            return False
+            grad = cairo.LinearGradient( a.x, a.y, a.x + a.w, a.y + a.h )
+            grad.add_color_stop_rgba( 0.0,   r1, g1, b1, alpha )
+            grad.add_color_stop_rgba( 1.0,   r2, g2, b2, alpha )
 
-        else:
-            cr = event.window.cairo_create()
+            cr.set_source( grad )
+            cr.rectangle( a.x + offset, a.y + offset, a.w-1, a.h-1 )
+            cr.stroke()
 
-            cr.set_source_rgb(1, 1, 1)
-            cr.paint()
+            coords = ( (a.x, a.y), (a.x + a.w-1, a.y), \
+                (a.x + a.w-1, a.y + a.h-1), (a.x, a.y + a.h-1) )
 
-            cr.set_source_pixbuf( self.captured_gui, 0, 0 )
-            cr.paint()
+            cr.set_dash( [] )
+            cr.set_line_width( 1 )
+            for coord in coords:
+                x = coord[0]
+                y = coord[1]
 
-            for a in self.areas:
+                cr.set_source_rgba( 1, 1, 1, alpha )
+                cr.arc( x, y, 3, 0, 2*PI )
+                cr.fill()
 
-                if a.ctrl == self.ctrl_selected:
-                    cr.set_dash( [] )
-                    cr.set_line_width( 3 )
-                    alpha = 1
-                elif a.ctrl == self.ctrl_over:
-                    cr.set_dash( [3] )
-                    cr.set_line_width( 2 )
-                    alpha = 0.5
-                else:
-                    continue
-
-                grad = cairo.LinearGradient( a.x, a.y, a.x + a.w, a.y + a.h )
-                grad.add_color_stop_rgba( 0.0,   0.4, 0.4, 0.9, alpha )
-                grad.add_color_stop_rgba( 1.0,   0.2, 0.8, 0.9, alpha )
-
-                cr.set_source( grad )
-                cr.rectangle( a.x + 0.5, a.y + 0.5, a.w-1, a.h-1 )
+                cr.set_source_rgba( r1, g1, b1, alpha )
+                cr.arc( x + 0.5, y + 0.5, 3, 0, 2*PI )
                 cr.stroke()
 
-                coords = ( (a.x, a.y), (a.x + a.w-1, a.y), \
-                    (a.x + a.w-1, a.y + a.h-1), (a.x, a.y + a.h-1) )
 
-                cr.set_dash( [] )
-                cr.set_line_width( 1 )
-                for coord in coords:
-                    x = coord[0]
-                    y = coord[1]
-
-                    cr.set_source_rgba( 1, 1, 1, alpha )
-                    cr.arc( x, y, 3, 0, 2 * 3.14159265 )
-                    cr.fill()
-
-                    cr.set_source_rgba( 0.2, 0.4, 1, alpha )
-                    cr.arc( x + 0.5, y + 0.5, 3, 0, 2 * 3.14159265 )
-                    cr.stroke()
+        # pára aqui; nao pinta mais os controles do form.
+        return True
 
 
-            # pára aqui; nao pinta mais os controles do form.
-            return True
+
+    def draw_title_bar(self, cr, w, h):
+        r1,g1,b1 = hex_to_rgb(TITLE_BAR_COLOR_TOP) 
+        r2,g2,b2 = hex_to_rgb(TITLE_BAR_COLOR_BOTTOM)
+
+        grad = cairo.LinearGradient( 0, 0, 0, h )
+        grad.add_color_stop_rgb( 0.0,  r1,g1,b1 )
+        grad.add_color_stop_rgb( 0.5,  r2,g2,b2 )
+
+        cr.set_source( grad )
+        cairo_rounded_rect( cr, 0, 0, w-1, h * 2 )
+        cr.fill()
+
+        cr.set_line_width( 1 )
+        cr.set_source_rgb( 0, 0, 0 )
+        cairo_rounded_rect( cr, 0 + 0.5, 0 + 0.5, w-1, h * 2 )
+        cr.move_to( 0 + 0.5, h-1 + 0.5 )
+        cr.line_to( w-1 + 0.5, h-1 + 0.5 )
+        cr.stroke()
+
+        #####
+
+        cr.identity_matrix()
+        cr.translate( TITLE_BAR_ICON_LEFT, TITLE_BAR_ICON_TOP )
+        cr.set_source_pixbuf( self.img_title_bar_icon, 0, 0 )
+        cr.paint()
+                
+        #####
+        
+        btn_w = self.img_title_bar_btn.get_width()
+        btn_h = self.img_title_bar_btn.get_height()
+
+        cr.identity_matrix()
+        cr.translate( w - btn_w - TITLE_BAR_BTN_RIGHT, TITLE_BAR_BTN_TOP )
+        cr.set_source_pixbuf( self.img_title_bar_btn, 0, 0 )
+        cr.paint()
+

@@ -45,7 +45,92 @@ def alert(msg, title = "Easy GUI Code"):
     dlg.set_markup( msg )
     dlg.run()
     dlg.destroy()
+
+
+
+
+
+#
+# filter_string ex.: 'Texts (*.txt;*.js)|Docs (*.doc)'
+#    
+def _add_filter_from_string(fileDialog, s):
+    for sk in s.split("|"):
+        f = gtk.FileFilter()
+        f.set_name( sk ) # ex.: 'Texts (*.txt)'
+        
+        ext_part = sk[ sk.find('(')+1 : sk.find(')') ]        
+        exts = ext_part.split(";")
+        
+        default_ext = exts[0][1:] if len(exts) > 0 else ""
+        setattr( f, '_default_ext_', default_ext )
+        
+        for ext in exts:
+            f.add_pattern( ext.strip() ) # ex.: '*.txt'
+        
+        fileDialog.add_filter( f )
+
+
+def open_dialog(filter_string, window = None, current_dir = None, multiple = False):
+    dlg = gtk.FileChooserDialog( \
+        title = "Open",
+        parent = window,
+        action = gtk.FILE_CHOOSER_ACTION_OPEN,
+        buttons=( \
+            gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+            gtk.STOCK_OPEN, gtk.RESPONSE_OK \
+        )
+    )
+
+    _add_filter_from_string( dlg, filter_string )
     
+    if current_dir != None:
+        dlg.set_current_folder( current_dir )
+    
+    resp = None
+    
+    if multiple:
+        dlg.set_property( "select-multiple", True )
+        if dlg.run() == gtk.RESPONSE_OK:
+            resp = dlg.get_filenames()
+    else:
+        if dlg.run() == gtk.RESPONSE_OK:        
+            resp = dlg.get_filename()
+        
+    dlg.destroy()
+    return resp
+
+
+def save_dialog(filter_string, window = None, current_dir = None):        
+    dlg = gtk.FileChooserDialog( \
+        title = "Save",
+        parent = window,
+        action = gtk.FILE_CHOOSER_ACTION_SAVE,
+        buttons=( \
+            gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+            gtk.STOCK_SAVE, gtk.RESPONSE_OK \
+        )
+    )
+    
+    _add_filter_from_string( dlg, filter_string )
+
+    if current_dir != None:
+        dlg.set_current_folder( current_dir )
+        
+    if dlg.run() == gtk.RESPONSE_OK:
+        filename = dlg.get_filename()
+
+        ext = os.path.splitext( filename )[1]
+        selected_filter = dlg.get_filter()
+        if ext == "" and selected_filter != None:
+            filename += getattr( selected_filter, '_default_ext_' )
+        
+    else:
+        filename = None
+        
+    dlg.destroy()
+    return filename
+    
+
 
 
 

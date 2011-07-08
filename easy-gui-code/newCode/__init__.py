@@ -33,57 +33,132 @@ sys.path.append( \
 from utils import *
 
 
+glade_src = """<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="2.24"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkWindow" id="window1">
+    <property name="can_focus">False</property>
+    <property name="window_position">center</property>
+    <property name="default_width">200</property>
+    <property name="default_height">150</property>
+    <child>
+      <object class="GtkVBox" id="vbox1">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="border_width">4</property>
+        <property name="spacing">2</property>
+        <child>
+          <placeholder/>
+        </child>
+        <child>
+          <object class="GtkHBox" id="hbox1">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="spacing">2</property>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
+"""
+
+
 class NewCode:
     def __init__(self):
         mydir = os.path.dirname(__file__)
         builder = gtk.Builder()
         builder.add_from_file( os.path.join( mydir, "newCode.glade" ) )
-
-        self.window = builder.get_object( "window" )
-        self.fileGlade = builder.get_object( "fileGlade" )
+        
+        self.window1 = builder.get_object( "window1" )
         self.btnOK = builder.get_object( "btnOK" )
         self.btnCancel = builder.get_object( "btnCancel" )
+        self.btnNew = builder.get_object( "btnNew" )
+        self.btnFind = builder.get_object("btnFind")
+        self.entryPath = builder.get_object("entryPath")        
 
-        self.window.connect( "delete-event", self.on_close )
+        self.window1.connect( "delete-event", self.on_close )
         self.btnCancel.connect( "clicked", self.on_close )
         self.btnOK.connect( "clicked", self.on_ok )
-
-        f = gtk.FileFilter()
-        f.set_name( "Glade" )
-        f.add_pattern( "*.glade" )
-        self.fileGlade.set_filter( f )
+        self.btnNew.connect( "clicked", self.on_btnNew_clicked )
+        self.btnFind.connect( "clicked", self.on_btnFind_clicked )
+        self.window1.connect( "map", self.on_window_start )
 
 
-    def run(self, parentWindow = None, _dir = "", doc = None):
+    def run(self, parentWindow = None, dir_path = None, doc = None):
         self.doc = doc
-        if _dir: self.fileGlade.set_current_folder( _dir )
+        if dir_path != None:
+            self.entryPath.set_text( dir_path + os.path.sep )
 
-        self.window.show()
+        self.window1.show()
         self.parentWindow = parentWindow
         if self.parentWindow:
-            self.window.set_transient_for( parentWindow )
+            self.window1.set_transient_for( parentWindow )
         else:
             gtk.main()
 
 
+    def on_window_start(self, window):
+        h = 180
+        self.window1.window.set_geometry_hints( \
+            min_width=400, max_width=1000, \
+            min_height=h, max_height=h )
+
+
     def on_close(self, *args):
         if self.parentWindow:
-            self.window.hide()
+            self.window1.hide()
             return True
         else:
             gtk.main_quit()
             return False
 
 
+    def on_btnFind_clicked(self, widget):
+        dir_path = os.path.dirname( self.entryPath.get_text() )
+        filename = open_dialog( "Glade (*.glade)", self.window1, dir_path )
+        if filename != None:
+            self.entryPath.set_text( filename )
+    
+    
+    def on_btnNew_clicked(self, widget):
+        dir_path = os.path.dirname( self.entryPath.get_text() )
+        filename = save_dialog( "Glade (*.glade)", self.window1, dir_path )
+        if filename != None:
+            f = open( filename, "w" )
+            f.write( glade_src )
+            f.close()
+            
+            self.entryPath.set_text( filename )
+
+
     def on_ok(self, *args):
-        filename = self.fileGlade.get_filename()
-        if self.doc and os.path.exists( filename ):
+        filename = self.entryPath.get_text()
+        if self.doc and os.path.isfile( filename ):
             self.gen_code( self.doc, filename )
         self.on_close()
-
+    
 
     def gen_code(self, doc, glade_file ):
-        objs = get_object_list_from_file( glade_file )
+        objs = get_objects_with_names_from_glade_file( glade_file )
 
         code_objs = ""
         main_window = ""
@@ -113,16 +188,17 @@ class NewCode:
         code1 = """#!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
-import gtk
 import os
+import gtk
 import pango
+
 
 class %s:
     def __init__(self):
         self.my_dir = os.path.dirname(__file__)
         builder = gtk.Builder()
         builder.add_from_file( os.path.join( self.my_dir, \"%s\" ) )
-
+        
 %s
 """     % (code_class, glade_file_basename, code_objs)
 
@@ -154,7 +230,6 @@ class %s:
 
 if __name__ == '__main__':
     %s().run()
-
 """     % (main_window, main_window, main_window, code_class)
 
         code = code1 + code2 + code3

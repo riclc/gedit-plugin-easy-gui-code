@@ -101,7 +101,7 @@ class EasyGuiCodePlugin(gedit.Plugin):
         doc_dir = os.path.dirname( doc_file )
 
         if self.analyser.builder_file == None:
-            NewCode().run( parentWindow = self.window, doc = doc, _dir = doc_dir )
+            NewCode().run( parentWindow = self.window, doc = doc, dir_path = doc_dir )
             return
 
         glade_file = os.path.join( doc_dir, self.analyser.builder_file )
